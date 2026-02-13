@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  тестирование:
+  test:    # ← ИСПРАВЛЕНО! было "тестирование"
     runs-on: ubuntu-latest
     
     steps:
