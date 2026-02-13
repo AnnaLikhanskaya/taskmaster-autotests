@@ -1,0 +1,56 @@
+name: Запуск тестов и публикация Allure отчёта
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:    # ← ИСПРАВЛЕНО! было "тестирование"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Получить код из репозитория
+        uses: actions/checkout@v4
+      
+      - name: Установить JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+      
+      - name: Кеширование Maven зависимостей
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      
+      - name: Запустить тесты
+        run: mvn clean test
+        
+      - name: Загрузить историю отчётов
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+      
+      - name: Собрать Allure отчёт
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: target/allure-results
+          allure_history: allure-history
+          keep_reports: 20
+      
+      - name: Опубликовать на GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+          destination_dir: .
