@@ -1,0 +1,28 @@
+# Allure local builds
+4/
+5/
+[0-9]*/
+[0-9][0-9]*/
+allure-results/
+allure-report/
+allure-history/
+
+# Build
+target/
+build/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+logs/
+
+# GitHub Pages
+gh-pages/
