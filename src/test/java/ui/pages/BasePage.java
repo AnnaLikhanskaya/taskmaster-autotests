@@ -4,8 +4,8 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
 import org.junit.jupiter.api.BeforeAll;
+import org.openqa.selenium.chrome.ChromeOptions;
 
-import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.webdriver;
 
 /**
@@ -31,17 +31,30 @@ public abstract class BasePage {
      */
     @BeforeAll
     public static void setUp() {
+
+        boolean isCI = Boolean.parseBoolean(System.getenv("CI"));
         Configuration.browser = "chrome";
-        Configuration.headless = false;
-        Configuration.timeout = 10000;
+        Configuration.headless = isCI;
+        Configuration.timeout = 15000;
         Configuration.baseUrl = "https://the-internet.herokuapp.com";
 
-        SelenideLogger.addListener("AllureSelenide",
-                new AllureSelenide().screenshots(true).savePageSource(true));
-    }
+        if (isCI) {
+            Configuration.browserSize = "1920x1080";
+            Configuration.browserCapabilities.setCapability(
+                    "goog:chromeOptions",
+                    new ChromeOptions().addArguments(
+                            "--disable-dev-shm-usage",
+                            "--no-sandbox",
+                            "--disable-gpu",
+                            "--window-size=1920,1080"
+                    )
+            );
+        }
 
-    /**
-     * Общий метод для проверки заголовка страницы
-     */
-    public abstract void shouldBeOpen();
+        if (!isCI) {
+            SelenideLogger.addListener("AllureSelenide",
+                    new AllureSelenide().screenshots(true).savePageSource(true));
+        }
+
+    }
 }
