@@ -14,25 +14,33 @@ import static com.codeborne.selenide.Selenide.webdriver;
  */
 public abstract class BasePage {
 
-    // Конструктор - вызывается при создании страницы
     public BasePage() {
-
+        // пустой конструктор
     }
 
     /**
      * Проверяет, открыта ли страница
      */
     protected boolean isPageOpen() {
-        return Configuration.baseUrl.equals(webdriver().driver().url());
+        try {
+            return Configuration.baseUrl.equals(webdriver().driver().url());
+        } catch (Exception e) {
+            return false;
+        }
     }
+
+    /**
+     * АБСТРАКТНЫЙ МЕТОД - каждая страница должна реализовать свою проверку!
+     */
+    public abstract void shouldBeOpen();
 
     /**
      * Настройка для ВСЕХ тестов (вызывается 1 раз)
      */
     @BeforeAll
     public static void setUp() {
-
         boolean isCI = Boolean.parseBoolean(System.getenv("CI"));
+
         Configuration.browser = "chrome";
         Configuration.headless = isCI;
         Configuration.timeout = 15000;
@@ -40,21 +48,19 @@ public abstract class BasePage {
 
         if (isCI) {
             Configuration.browserSize = "1920x1080";
-            Configuration.browserCapabilities.setCapability(
-                    "goog:chromeOptions",
-                    new ChromeOptions().addArguments(
-                            "--disable-dev-shm-usage",
-                            "--no-sandbox",
-                            "--disable-gpu",
-                            "--window-size=1920,1080"
-                    )
+            ChromeOptions options = new ChromeOptions();  // 👈 ЛУЧШЕ ТАК
+            options.addArguments(
+                    "--disable-dev-shm-usage",
+                    "--no-sandbox",
+                    "--disable-gpu",
+                    "--window-size=1920,1080"
             );
+            Configuration.browserCapabilities = options;  // 👈 И ТАК
         }
 
         if (!isCI) {
             SelenideLogger.addListener("AllureSelenide",
                     new AllureSelenide().screenshots(true).savePageSource(true));
         }
-
     }
 }
